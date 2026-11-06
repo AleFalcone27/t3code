@@ -3,6 +3,12 @@ import type { PullRequestMergeMethod } from "@t3tools/contracts";
 import { create } from "zustand";
 import { normalizeProjectPathForComparison } from "@t3tools/client-runtime/state/projects";
 
+import {
+  parseSidebarProjectFolders,
+  saveSidebarProjectFolder,
+  type SidebarProjectFolder,
+} from "./sidebarProjectFolders";
+
 export const PERSISTED_STATE_KEY = "t3code:ui-state:v1";
 const THREAD_CHANGED_FILES_EXPANSION_VERSION = 2;
 const LEGACY_PERSISTED_STATE_KEYS = [
@@ -21,6 +27,7 @@ const LEGACY_PERSISTED_STATE_KEYS = [
 export interface PersistedUiState {
   projectExpandedById?: Record<string, boolean>;
   projectOrder?: string[];
+  sidebarProjectFolders?: SidebarProjectFolder[];
   threadLastVisitedAtById?: Record<string, string>;
   collapsedProjectCwds?: string[];
   expandedProjectCwds?: string[];
@@ -36,6 +43,7 @@ export interface PersistedUiState {
 export interface UiProjectState {
   projectExpandedById: Record<string, boolean>;
   projectOrder: string[];
+  sidebarProjectFolders: SidebarProjectFolder[];
   sidebarProjectScopeKeys: string[];
 }
 
@@ -58,6 +66,7 @@ export interface UiState
 const initialState: UiState = {
   projectExpandedById: {},
   projectOrder: [],
+  sidebarProjectFolders: [],
   sidebarProjectScopeKeys: [],
   threadLastVisitedAtById: {},
   threadChangedFilesExpandedById: {},
@@ -145,6 +154,7 @@ export function parsePersistedState(parsed: PersistedUiState): UiState {
   return {
     projectExpandedById,
     projectOrder,
+    sidebarProjectFolders: parseSidebarProjectFolders(parsed.sidebarProjectFolders),
     threadLastVisitedAtById: sanitizeTimestampRecord(parsed.threadLastVisitedAtById),
     threadChangedFilesExpandedById:
       parsed.threadChangedFilesExpansionVersion === THREAD_CHANGED_FILES_EXPANSION_VERSION
@@ -225,6 +235,7 @@ export function persistState(state: UiState): void {
       JSON.stringify({
         projectExpandedById,
         projectOrder: state.projectOrder,
+        sidebarProjectFolders: state.sidebarProjectFolders,
         threadLastVisitedAtById: state.threadLastVisitedAtById,
         defaultAdvertisedEndpointKey: state.defaultAdvertisedEndpointKey,
         sidebarProjectScopeKeys: state.sidebarProjectScopeKeys,
@@ -429,6 +440,9 @@ export function reorderProjects(
 }
 
 interface UiStateStore extends UiState {
+  setSidebarProjectOrganization: (folders: SidebarProjectFolder[], projectOrder: string[]) => void;
+  saveSidebarProjectFolder: (folder: SidebarProjectFolder) => void;
+  deleteSidebarProjectFolder: (id: string) => void;
   markThreadVisited: (threadId: string, visitedAt: string) => void;
   markThreadUnread: (threadId: string, latestTurnCompletedAt: string | null | undefined) => void;
   setThreadChangedFilesExpanded: (threadId: string, turnId: string, expanded: boolean) => void;
@@ -445,6 +459,16 @@ interface UiStateStore extends UiState {
 
 export const useUiStateStore = create<UiStateStore>((set) => ({
   ...readPersistedState(),
+  setSidebarProjectOrganization: (sidebarProjectFolders, projectOrder) =>
+    set({ sidebarProjectFolders, projectOrder }),
+  saveSidebarProjectFolder: (folder) =>
+    set((state) => ({
+      sidebarProjectFolders: saveSidebarProjectFolder(state.sidebarProjectFolders, folder),
+    })),
+  deleteSidebarProjectFolder: (id) =>
+    set((state) => ({
+      sidebarProjectFolders: state.sidebarProjectFolders.filter((folder) => folder.id !== id),
+    })),
   markThreadVisited: (threadId, visitedAt) =>
     set((state) => markThreadVisited(state, threadId, visitedAt)),
   markThreadUnread: (threadId, latestTurnCompletedAt) =>

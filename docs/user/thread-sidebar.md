@@ -152,12 +152,28 @@ cannot drag or move threads within it. Your saved order returns when you turn it
 
 Turn on **Settings → Labs → Boring sidebar (group by project)** on web and desktop to put active
 threads in a folder for each project. Pinned projects come first. A project with no active
-threads has no folder unless it is pinned or you pick it in the project filter. An archived
+threads has no folder unless it is pinned, belongs to a project folder, or you pick it in the project filter. An archived
 project's folder comes last and shows only while it has active threads. Click a folder to open or
 close it. A closed folder shows how many threads it holds, and a dot when one of them
 needs you. Use the pen button on a folder, or right-click it, to start a thread in that project.
-Pinned threads stay above the folders, and Snoozed and Settled stay below them. In this mode you
-cannot drag threads, and the Working section is off. Each device keeps its own choice.
+
+To group several projects together on web or desktop, click **New project folder** beside
+the project filter. Give it a name and color, then select its projects. Use the
+folder's options menu to edit its name, color, or projects, or delete the folder
+while keeping its projects. Right-click a project to move it to a folder or remove
+it from one. These folders and their open/closed state are saved on this device.
+They organize the sidebar without moving directories on disk.
+
+Pinned threads stay above the folders, and Snoozed and Settled stay below them. The Working
+section is off in this mode. Each device keeps its own choice.
+
+Turn on **Settings → Labs → Sidebar drag and drop** to rearrange this layout by dragging. Drag a
+thread to reorder it, or onto another project to move it there; drag a project to reorder it or
+drop it on a project folder; drag a project folder to reorder folders. A line (or a box, when the
+drop goes inside a project or folder) shows where it will land, and Esc cancels. A project's
+threads keep the order you drop them in, and a project you move switches the project order to
+manual. A thread that is still working cannot be moved to another project. With the toggle off,
+threads in this layout stay put.
 
 ## Settle finished work
 

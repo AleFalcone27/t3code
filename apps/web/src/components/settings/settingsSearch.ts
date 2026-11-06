@@ -463,6 +463,18 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["beta folders project tree legacy old classic sidebar"],
   },
   {
+    id: "sidebar-project-folders",
+    title: "Project folders",
+    searchTerms: ["groups university color sidebar"],
+    to: "/settings/labs",
+  },
+  {
+    id: "sidebar-drag-and-drop",
+    title: "Sidebar drag and drop",
+    searchTerms: ["reorder move threads projects folders"],
+    to: "/settings/labs",
+  },
+  {
     id: "boring-sidebar-multiline",
     title: "Two-line folder rows",
     to: "/settings/labs",

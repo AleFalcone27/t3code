@@ -432,7 +432,10 @@ function SnoozeMenuButton(props: {
 type SortableThreadRowBag = Pick<
   ReturnType<typeof useSortable>,
   "listeners" | "setNodeRef" | "transform" | "transition" | "isDragging"
->;
+> & {
+  /** The source of a tree drag keeps its place and steps back while a ghost follows the pointer. */
+  dimmed?: boolean;
+};
 
 export const draftSurfaceClassName = "bg-warning/4 hover:bg-warning/8";
 export const draftPenClassName = "size-3 shrink-0 text-warning-foreground";
@@ -450,9 +453,10 @@ export function SortableThreadRow(
     sortableId: string;
     sortableDisabled: boolean;
     contextDrag: boolean;
+    treeDragging?: boolean;
   },
 ) {
-  const { sortableId, sortableDisabled, contextDrag, ...rowProps } = props;
+  const { sortableId, sortableDisabled, contextDrag, treeDragging = false, ...rowProps } = props;
   const canOperateThread = useEnvironmentScope(
     rowProps.thread.environmentId,
     AuthOrchestrationOperateScope,
@@ -470,9 +474,10 @@ export function SortableThreadRow(
   const bag = {
     listeners,
     setNodeRef,
-    transform: contextDrag ? null : transform,
+    transform: contextDrag || treeDragging ? null : transform,
     transition: contextDrag && isDragging ? "transform 150ms ease-out" : transition,
-    isDragging: isDragging && !contextDrag,
+    isDragging: isDragging && !contextDrag && !treeDragging,
+    dimmed: isDragging && treeDragging,
   };
   // The sidebar arranges rows from quiet shells, which hold still while a
   // thread streams; reading the live shell here re-renders only this row.
@@ -977,6 +982,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
         style: {
           transform: CSS.Translate.toString(sortable.transform),
           transition: sortable.transition,
+          opacity: sortable.dimmed ? 0.4 : undefined,
           // A zero-height boundary also makes dnd-kit scale the source to
           // zero. Only projected peers use scaleY as a visibility sentinel.
           visibility:

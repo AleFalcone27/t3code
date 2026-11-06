@@ -24,6 +24,7 @@ export function LabsSettingsPanel() {
       <SettingsSection id="beta" title="Beta">
         <BoringSidebarRow />
         <BoringSidebarMultilineRow />
+        <SidebarOrganizationRows />
         <ToolCallVisibilityRow />
         {/* Clerk is only mounted when this build has T3 Connect. */}
         {hasCloudPublicConfig() ? <GuestLinksRowWithSignIn /> : <GuestLinksRow />}
@@ -53,6 +54,41 @@ function BoringSidebarRow() {
         />
       }
     />
+  );
+}
+
+function SidebarOrganizationRows() {
+  const settings = useScopedSettings();
+  const updateSettings = useUpdateScopedSettings();
+  return (
+    <>
+      <SettingsRow
+        {...searchableSetting("sidebar-project-folders")}
+        description="In the boring sidebar, organize projects into named, colored folders. Turning this off keeps your saved folders."
+        control={
+          <Switch
+            checked={settings.sidebarProjectFoldersEnabled}
+            onCheckedChange={(checked) =>
+              updateSettings({ sidebarProjectFoldersEnabled: Boolean(checked) })
+            }
+            aria-label="Project folders"
+          />
+        }
+      />
+      <SettingsRow
+        {...searchableSetting("sidebar-drag-and-drop")}
+        description="Drag threads, projects, and project folders in the boring sidebar. Drop a thread on another project to move it there. Uses your existing saved thread order."
+        control={
+          <Switch
+            checked={settings.sidebarDragAndDropEnabled}
+            onCheckedChange={(checked) =>
+              updateSettings({ sidebarDragAndDropEnabled: Boolean(checked) })
+            }
+            aria-label="Sidebar drag and drop"
+          />
+        }
+      />
+    </>
   );
 }
 

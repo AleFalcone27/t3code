@@ -19,6 +19,7 @@ function makeUiState(overrides: Partial<UiState> = {}): UiState {
   return {
     projectExpandedById: {},
     projectOrder: [],
+    sidebarProjectFolders: [],
     sidebarProjectScopeKeys: [],
     threadLastVisitedAtById: {},
     threadChangedFilesExpandedById: {},
@@ -121,6 +122,7 @@ describe("parsePersistedState", () => {
         logical: false,
       },
       projectOrder: ["physical-b", "physical-a"],
+      sidebarProjectFolders: [],
       threadLastVisitedAtById: {
         "environment:thread-1": "2026-02-25T12:35:00.000Z",
       },
@@ -204,6 +206,15 @@ describe("uiStateStore persistence", () => {
         logical: false,
       },
       projectOrder: ["physical-b", "physical-a"],
+      sidebarProjectFolders: [
+        {
+          id: "university",
+          name: "University",
+          color: "blue",
+          projectKeys: ["physical-a", "physical-b"],
+          collapsed: true,
+        },
+      ],
       threadLastVisitedAtById: {
         "environment:thread-1": "2026-02-25T12:35:00.000Z",
       },
@@ -226,6 +237,15 @@ describe("uiStateStore persistence", () => {
         logical: false,
       },
       projectOrder: ["physical-b", "physical-a"],
+      sidebarProjectFolders: [
+        {
+          id: "university",
+          name: "University",
+          color: "blue",
+          projectKeys: ["physical-a", "physical-b"],
+          collapsed: true,
+        },
+      ],
       threadLastVisitedAtById: {
         "environment:thread-1": "2026-02-25T12:35:00.000Z",
       },

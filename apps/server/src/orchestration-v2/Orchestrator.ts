@@ -3538,7 +3538,35 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
       }
     }
 
+    const projectChanged =
+      command.type === "thread.metadata.update" &&
+      command.projectId !== undefined &&
+      command.projectId !== thread.projectId;
+    if (projectChanged) {
+      const target = yield* projects.get(command.projectId!).pipe(mapDispatchError(command));
+      const rejectMove = (cause: string) =>
+        new OrchestratorDispatchError({
+          commandId: command.commandId,
+          commandType: command.type,
+          cause,
+        });
+      if (
+        Option.isNone(target) ||
+        target.value.deletedAt !== null ||
+        target.value.archivedAt !== null
+      ) {
+        return yield* rejectMove("The destination project is unavailable.");
+      }
+      const projection = yield* loadProjectionForCommand(command, ["runs", "runtimeRequests"], {
+        turnItemTypes: [],
+      });
+      if (threadHasUnfinishedWork(projection))
+        return yield* rejectMove("Finish or stop the thread before moving it to another project.");
+      if (thread.lineage.relationshipToParent === "subagent" || thread.lineage.sideChat === true)
+        return yield* rejectMove("A child thread must stay in its parent's project.");
+    }
     const needsProviderState =
+      projectChanged ||
       command.type === "thread.runtime-mode.set" ||
       command.type === "thread.model-selection.set" ||
       command.type === "provider.switch" ||
@@ -3893,6 +3921,17 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
               : command.regenerateTitle === false || command.title !== undefined
                 ? { titleRegeneration: null }
                 : {}),
+            ...(projectChanged
+              ? {
+                  projectId: command.projectId!,
+                  branch: null,
+                  worktreePath: null,
+                  linkedPullRequest: null,
+                  branchPullRequest: null,
+                  pullRequests: [],
+                  activeOrderKey: null,
+                }
+              : {}),
             updatedAt: now,
           };
         }
@@ -4329,9 +4368,10 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     const detachSessionIds = new Set(
       command.type === "thread.archive" || command.type === "thread.settle"
         ? (providerContext?.providerSessions ?? []).map((session) => session.id)
-        : command.type === "thread.metadata.update" &&
-            command.worktreePath !== undefined &&
-            command.worktreePath !== thread.worktreePath
+        : projectChanged ||
+            (command.type === "thread.metadata.update" &&
+              command.worktreePath !== undefined &&
+              command.worktreePath !== thread.worktreePath)
           ? (providerContext?.providerSessions ?? []).map((session) => session.id)
           : command.type === "thread.runtime-mode.set"
             ? (providerContext?.providerSessions ?? [])
@@ -4403,7 +4443,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
       );
     }
 
-    if (command.type === "thread.archive") {
+    if (command.type === "thread.archive" || projectChanged) {
       yield* Ref.update(effects, (existing) => [
         ...existing,
         {

@@ -1,3 +1,4 @@
+import { useSidebarTreeRow } from "./useSidebarTreeDrag";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { ChevronDownIcon, SquarePenIcon } from "lucide-react";
@@ -36,6 +37,8 @@ export function sidebarFolderRowId(projectKey: string) {
  * closed folder still says when a hidden thread needs you.
  */
 export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHeader(props: {
+  dragEnabled?: boolean | undefined;
+  parentRow?: string | undefined;
   group: SidebarProjectSnapshot;
   collapsed: boolean;
   hiddenThreads: readonly EnvironmentThreadShell[];
@@ -45,6 +48,10 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
 }) {
   const { group, collapsed, hiddenThreads } = props;
   const rowId = sidebarFolderRowId(group.projectKey);
+  const { className: dragClassName, ...dragProps } = useSidebarTreeRow(
+    rowId,
+    props.dragEnabled === true,
+  );
   const localLastVisitedAtById = useUiStateStore((state) => state.threadLastVisitedAtById);
   const dot = collapsed
     ? resolveSidebarFolderDot(
@@ -65,15 +72,20 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
       className="group/project-folder relative mt-2 list-none first:mt-0"
     >
       <button
+        {...dragProps}
         type="button"
         data-sidebar-row={rowId}
+        data-sidebar-parent={props.parentRow}
         aria-expanded={!collapsed}
         onClick={() => props.onToggle(group)}
         onContextMenu={(event) => {
           event.preventDefault();
           props.onContextMenu(group, { x: event.clientX, y: event.clientY });
         }}
-        className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className={cn(
+          "flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+          dragClassName,
+        )}
       >
         <ProjectFavicon project={group} className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90">
